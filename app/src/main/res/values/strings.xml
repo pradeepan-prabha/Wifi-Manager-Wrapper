@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WifiManagerWrapper</string>
+    <string name="wifi_manager_wrapper">Wifi Manager Wrapper In Kotlin</string>
+    <string name="scan_wifi">Scan Wifi</string>
+</resources>
