@@ -1,4 +1,4 @@
-package com.imake.waterlevel.util.wifiwrapper
+package com.imake.wifimanagerwrapper.util.wifiwrapper
 
 import android.net.wifi.ScanResult
 

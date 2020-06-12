@@ -2,4 +2,14 @@
     <string name="app_name">WifiManagerWrapper</string>
     <string name="wifi_manager_wrapper">Wifi Manager Wrapper In Kotlin</string>
     <string name="scan_wifi">Scan Wifi</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="wi_fi_list">Wi-Fi List</string>
+    <string name="password">Password</string>
+    <string name="ssid">SSID</string>
+    <string-array name="wifi_security">
+        <item>None</item>
+        <item>WEP</item>
+        <item>WPA/WAP2 PSK</item>
+    </string-array>
 </resources>
