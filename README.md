@@ -24,7 +24,7 @@ implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.1'
 </manifest>
 ```
 
-## Implementation for Wi-Fi Scan 
+## Implementation for Wi-Fi Scan and Connectivity
 ``var wifiManagerWrapper = WifiManagerWrapper() // Library initialization``
 
 ### Wi-Fi Scan
