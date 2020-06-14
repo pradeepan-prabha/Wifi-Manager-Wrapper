@@ -1,4 +1,4 @@
-package com.imake.wifimanagerwrapper.util.wifiwrapper
+package com.wifimanagerwrapper
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class WifiManagerWrapper() {
@@ -158,28 +159,41 @@ class WifiManagerWrapper() {
         networkPassword: String,
         networkSecurity: String
     ) {
-        if (isConnectedTo(networkSSID)) {
-            //see if we are already connected to the given SSID
-            Log.d(TAG, "Given Network SSID is already connected : $networkSSID")
-            return
-        }
-        wifiConnectionBroadcastReceiverInstance()
-        val wm: WifiManager =
-            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        var wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
+        if (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (isConnectedTo(networkSSID)) {
+                //see if we are already connected to the given SSID
+                Log.d(TAG, "Given Network SSID is already connected : $networkSSID")
+                return
+            }
+            wifiConnectionBroadcastReceiverInstance()
+            val wm: WifiManager =
+                context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            var wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
 
-        if (wifiConfig == null) {
-            //if the given SSID is not present in the WiFiConfig, create a config for it
-            createWPAProfile(networkSSID, networkPassword, networkSecurity)
-            wifiConfig = getWiFiConfig(networkSSID)
-        }
-        if (wifiConfig != null) {
-            wm.disconnect()
-            wm.enableNetwork(wifiConfig.networkId, true)
-            wm.reconnect()
-            Log.d(TAG, "Initiated connection to Network SSID $networkSSID")
-        } else {
-            Log.d(TAG, "Connection failure to Network SSID $networkSSID")
+            if (wifiConfig == null) {
+                //if the given SSID is not present in the WiFiConfig, create a config for it
+                createWPAProfile(networkSSID, networkPassword, networkSecurity)
+                wifiConfig = getWiFiConfig(networkSSID)
+            }
+            if (wifiConfig != null) {
+                wm.disconnect()
+                wm.enableNetwork(wifiConfig.networkId, true)
+                wm.reconnect()
+                Log.d(TAG, "Initiated connection to Network SSID $networkSSID")
+            } else {
+                Log.d(TAG, "Connection failure to Network SSID $networkSSID")
+            }
+        }else{
+            Log.d(TAG, "Please grand the location permission is mandatory for wifi manager.")
+
         }
     }
 
@@ -220,6 +234,7 @@ class WifiManagerWrapper() {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             val wifiList = wm.configuredNetworks
+
             for (item in wifiList) {
                 if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
                     Log.d(TAG, "Network SSID is Available in WiFiManger")
