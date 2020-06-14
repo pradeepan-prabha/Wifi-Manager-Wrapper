@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), WifiCallbackResult {
 
         scanBtn.setOnClickListener {
             wifiManagerWrapper = WifiManagerWrapper()
-            wifiManagerWrapper.wifiManagerInti(it.context, this).startAutoWifiScanner()
+            wifiManagerWrapper.wifiManagerInti(it.context, this).autoWifiScanner()
         }
 
         connectBtn.setOnClickListener(View.OnClickListener {
@@ -33,9 +33,6 @@ class MainActivity : AppCompatActivity(), WifiCallbackResult {
             )
         })
 
-        disconnectBtn.setOnClickListener(View.OnClickListener {
-            wifiManagerWrapper.disconnectWifi()
-        })
         forgetBtn.setOnClickListener(View.OnClickListener {
             wifiManagerWrapper.forgotWifi(networkNameEt.text.toString())
         })

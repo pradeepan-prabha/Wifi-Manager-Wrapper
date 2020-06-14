@@ -34,7 +34,7 @@ class WifiManagerWrapper() {
         return this
     }
 
-    fun startAutoWifiScanner() {
+    fun autoWifiScanner() {
         if (wifiManager.isWifiEnabled) {
             autoStartStopWifiScanner()
             Log.d(TAG, "WiFi is Enabled")
@@ -49,6 +49,9 @@ class WifiManagerWrapper() {
         }
     }
 
+    fun isWifiEnabled(): Boolean? {
+        return wifiManager.isWifiEnabled
+    }
 
     private fun autoStartStopWifiScanner() {
         // Create Instance for broadcast receiver Wi-Fi Scanner
@@ -64,7 +67,11 @@ class WifiManagerWrapper() {
         }
     }
 
-    private fun startWifiScanner() {
+    fun startManualWifiScanner() {
+        // Create Instance for broadcast receiver Wi-Fi Scanner
+        wifiScannerBroadcastReceiverInstance()
+        // Register broadcast receiver for Wi-Fi Scanner
+        registerWifiScannerBroadcastReceiver()
         val success = wifiManager.startScan()
         if (!success) {
             // scan failure handling
@@ -72,6 +79,12 @@ class WifiManagerWrapper() {
             Log.d(TAG, "Scan failure handling")
             scanFailure()
         }
+    }
+
+    fun stopManualWifiScanner() {
+        Log.d(TAG, "Stop Manual Wifi Scanner")
+        unregisterWifiScannerBroadcastReceiver()
+
     }
 
     private fun unregisterWifiScannerBroadcastReceiver() {
@@ -163,14 +176,14 @@ class WifiManagerWrapper() {
             Log.d(TAG, "Given Network SSID is already connected : $networkSSID")
             return
         }
-        wifiConnectionBroadcastReceiverInstance()
+//        wifiConnectionBroadcastReceiverInstance()
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         var wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
 
         if (wifiConfig == null) {
             //if the given SSID is not present in the WiFiConfig, create a config for it
-            createWPAProfile(networkSSID, networkPassword, networkSecurity)
+            createNetworkProfile(networkSSID, networkPassword, networkSecurity)
             wifiConfig = getWiFiConfig(networkSSID)
         }
         if (wifiConfig != null) {
@@ -183,19 +196,13 @@ class WifiManagerWrapper() {
         }
     }
 
-    fun disconnectWifi() {
-        val wm: WifiManager =
-            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        wm.disconnect()
-    }
-
     fun forgotWifi(networkSSID: String) {
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
         if (wifiConfig != null) {
             wm.removeNetwork(wifiConfig.networkId)
-        };
+        }
     }
 
     private fun isConnectedTo(networkSSID: String): Boolean {
@@ -208,8 +215,34 @@ class WifiManagerWrapper() {
     }
 
     private fun getWiFiConfig(networkSSID: String): WifiConfiguration? {
-        val wm: WifiManager =
-            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val wifiList = getWifiSavedDetails()
+        if (wifiList != null) {
+            for (item in wifiList) {
+                if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
+                    Log.d(TAG, "Network SSID is Available in WiFiManger")
+                    return item
+                }
+            }
+        }
+        Log.d(TAG, "Network SSID is Not Available in WiFiManger")
+        return null
+    }
+
+    fun isWifiSavedNetwork(networkSSID: String): Boolean {
+        val wifiList = getWifiSavedDetails()
+        if (wifiList != null) {
+            for (item in wifiList) {
+                if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
+                    Log.d(TAG, "Network SSID is Available in WiFiManger")
+                    return true
+                }
+            }
+        }
+        Log.d(TAG, "Network SSID is Not Available in WiFiManger")
+        return false
+    }
+
+    fun getWifiSavedDetails(): MutableList<WifiConfiguration>? {
         if (ContextCompat.checkSelfPermission(
                 context,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION
@@ -219,19 +252,18 @@ class WifiManagerWrapper() {
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            val wifiList = wm.configuredNetworks
-            for (item in wifiList) {
-                if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
-                    Log.d(TAG, "Network SSID is Available in WiFiManger")
-                    return item
-                }
-            }
-            Log.d(TAG, "Network SSID is Not Available in WiFiManger")
+            val wm: WifiManager =
+                context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            return wm.configuredNetworks
         }
         return null
     }
 
-    private fun createWPAProfile(networkSSID: String, networkPass: String, security: String) {
+    private fun createNetworkProfile(
+        networkSSID: String,
+        networkPass: String,
+        security: String
+    ): Boolean {
         Log.d(TAG, "Saving Network SSID :$networkSSID Security :$security")
         val conf = WifiConfiguration()
         conf.SSID = String.format("\"%s\"", networkSSID)
@@ -288,10 +320,12 @@ class WifiManagerWrapper() {
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val networkId = wm.addNetwork(conf)
-        if (networkId != -1) {
+        return if (networkId != -1) {
             Log.d(TAG, "Saved Network SSID to WiFiManger")
+            true
         } else {
             Log.d(TAG, "Unable to Save Network SSID to WiFiManger")
+            false
         }
     }
 }
