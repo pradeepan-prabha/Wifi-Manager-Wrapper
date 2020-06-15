@@ -26,7 +26,7 @@ Then, add the library to your module `build.gradle`
 ```gradle
 dependencies {
 
-        implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.2'
+        implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.3'
 }
 ```
 
