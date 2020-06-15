@@ -243,20 +243,9 @@ class WifiManagerWrapper() {
     }
 
     fun getWifiSavedDetails(): MutableList<WifiConfiguration>? {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            val wm: WifiManager =
-                context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            return wm.configuredNetworks
-        }
-        return null
+        val wm: WifiManager =
+            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        return wm.configuredNetworks
     }
 
     private fun createNetworkProfile(
