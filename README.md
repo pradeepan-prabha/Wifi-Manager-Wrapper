@@ -6,11 +6,28 @@ Manual and Automatic Wifi scanner handler using kotlin in android.
 ## Example Screenshots
 
 ### Wi-Fi Manager Wrapper Demo  
+<p align="center">
 <img src="/1.jpg" alt="Home Page" width="50%" height="50%">
+</p>
 
-## Integration
+## Dependency
+
+Add this in your root `build.gradle` file (**not** your module `build.gradle` file):
+
+```gradle
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
 ```
-implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.1'
+
+Then, add the library to your module `build.gradle`
+```gradle
+dependencies {
+
+        implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.3'
+}
 ```
 
 ## Uses Permission
@@ -24,7 +41,7 @@ implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.1'
 </manifest>
 ```
 
-## Implementation for Wi-Fi Scan 
+## Implementation for Wi-Fi Scan and Connectivity
 ``var wifiManagerWrapper = WifiManagerWrapper() // Library initialization``
 
 ### Wi-Fi Scan
