@@ -215,16 +215,17 @@ class WifiManagerWrapper() {
     }
 
     private fun getWiFiConfig(networkSSID: String): WifiConfiguration? {
-        val wifiList = getWifiSavedDetails()
-        if (wifiList != null) {
+        val wm: WifiManager =
+            context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val wifiList = wm.configuredNetworks
+
             for (item in wifiList) {
                 if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
                     Log.d(TAG, "Network SSID is Available in WiFiManger")
                     return item
                 }
             }
-        }
-        Log.d(TAG, "Network SSID is Not Available in WiFiManger")
+            Log.d(TAG, "Network SSID is Not Available in WiFiManger")
         return null
     }
 
@@ -245,12 +246,8 @@ class WifiManagerWrapper() {
     fun getWifiSavedDetails(): MutableList<WifiConfiguration>? {
         if (ContextCompat.checkSelfPermission(
                 context,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(
-                context,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             val wm: WifiManager =
                 context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
