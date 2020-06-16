@@ -47,7 +47,7 @@ dependencies {
 ### Wi-Fi Scan
 
 ```
-        wifiManagerWrapper.wifiManagerInti(this, object:WifiCallbackResult{
+            wifiManagerWrapper!!.wifiManagerInti(this).autoWifiScanner(object: WifiScanCallbackResult{
                 override fun wifiFailureResult(results: MutableList<ScanResult>) {
                     TODO("Not yet implemented")
                 }
@@ -55,19 +55,29 @@ dependencies {
                 override fun wifiSuccessResult(results: List<ScanResult>) {
                     TODO("Not yet implemented")
                 }
-            }).autoWifiScanner()        
+            })   
  ```
 
 ### Wi-Fi Connectivity
+## Connect Wi-Fi
 ```
-         wifiManagerWrapper.connectWifi(
-                networkNameEt.text.toString(),
-                networkPasswordEt.text.toString(),
-                wifiManagerWrapper.WPA_WPA2_PSK
-            ) //Argument SSID String
+            wifiManagerWrapper ?. connectWifi ("Android-Wifi", "13245678",
+            wifiManagerWrapper!!.WPA_WPA2_PSK,
+            object:WifiConnectivityCallbackResult{
+                override fun wifiConnectionStatusChangedResult() {
+                    TODO("Not yet implemented")
+                }
+            })
 ```
+
+## Forget Wi-Fi
 ```
-         wifiManagerWrapper.forgotWifi(networkNameEt.text.toString()) //Argument SSID String
+         wifiManagerWrapper.forgotWifi("Android-Wifi",
+            object:WifiConnectivityCallbackResult{
+                override fun wifiConnectionStatusChangedResult() {
+                    TODO("Not yet implemented")
+                }
+            })
 ```
 
 ## Methods:
