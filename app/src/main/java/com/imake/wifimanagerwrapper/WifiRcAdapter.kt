@@ -26,7 +26,9 @@ class WifiRcAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.networkNameTv.text = arrayList[position].SSID
-        holder.securityNetworkTv.text = arrayList[position].capabilities
+        if (arrayList[position].capabilities == "Connected") {
+            holder.securityNetworkTv.text = arrayList[position].capabilities
+        }
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

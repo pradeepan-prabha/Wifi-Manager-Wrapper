@@ -5,16 +5,17 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.imake.wifimanagerwrapper.util.wifiwrapper.WifiCallbackResult
+import com.imake.wifimanagerwrapper.util.wifiwrapper.WifiConnectivityCallbackResult
+import com.imake.wifimanagerwrapper.util.wifiwrapper.WifiScanCallbackResult
 import com.imake.wifimanagerwrapper.util.wifiwrapper.WifiManagerWrapper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.wifi_recycle_view.*
 
+class MainActivity : AppCompatActivity(), WifiScanCallbackResult, WifiConnectivityCallbackResult {
 
-class MainActivity : AppCompatActivity(), WifiCallbackResult {
-
+    private lateinit var networkNameToConnect: String
     private lateinit var wifiScanResultList: List<ScanResult>
-    private lateinit var wifiManagerWrapper: WifiManagerWrapper
+    private var wifiManagerWrapper: WifiManagerWrapper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,43 +23,49 @@ class MainActivity : AppCompatActivity(), WifiCallbackResult {
 
         scanBtn.setOnClickListener {
             wifiManagerWrapper = WifiManagerWrapper()
-            wifiManagerWrapper.wifiManagerInti(it.context, this).autoWifiScanner()
+            wifiManagerWrapper!!.wifiManagerInti(this).autoWifiScanner(this)
         }
 
         connectBtn.setOnClickListener(View.OnClickListener {
-            wifiManagerWrapper.connectWifi(
+            networkNameToConnect = networkNameEt.text.toString()
+            wifiManagerWrapper?.connectWifi(
                 networkNameEt.text.toString(),
                 networkPasswordEt.text.toString(),
-                wifiManagerWrapper.WPA_WPA2_PSK
+                wifiManagerWrapper!!.WPA_WPA2_PSK,
+                this
             )
         })
 
         forgetBtn.setOnClickListener(View.OnClickListener {
-            wifiManagerWrapper.forgotWifi(networkNameEt.text.toString())
+            if (wifiManagerWrapper != null)
+                wifiManagerWrapper!!.forgetWifi(networkNameEt.text.toString(),this)
         })
     }
 
     override fun wifiFailureResult(results: MutableList<ScanResult>) {
-        println("wifiFailureResult*****************rootTemp = $results")
-        wifiScanResultList= emptyList()
+        println("Wi-fi Failure Result*****************= $results")
+        wifiScanResultList = emptyList()
         setRecycleViewAdapter(results)
     }
 
     override fun wifiSuccessResult(results: List<ScanResult>) {
-        println("wifiSuccessResult******************rootTemp = $results")
+        println("Wi-Fi Success Result******************= $results")
+        wifiScanResultList = emptyList()
         wifiScanResultList = results
-        setRecycleViewAdapter(results)
+        //Check Available Devices
+        checkDeviceConnected(wifiScanResultList)
+        setRecycleViewAdapter(wifiScanResultList)
     }
 
     private fun setRecycleViewAdapter(
         arrayList: List<ScanResult>
     ) {
-            // Creates a vertical Layout Manager
-            recycleView.layoutManager = LinearLayoutManager(this)
-            // Access the RecyclerView Adapter and load the data into it
-            recycleView.adapter = WifiRcAdapter(arrayList)
-            recycleView.animation
-            initOnItemTouchListener()
+        // Creates a vertical Layout Manager
+        recycleView.layoutManager = LinearLayoutManager(this)
+        // Access the RecyclerView Adapter and load the data into it
+        recycleView.adapter = WifiRcAdapter(arrayList)
+        recycleView.animation
+        initOnItemTouchListener()
     }
 
     private fun initOnItemTouchListener() {
@@ -75,5 +82,26 @@ class MainActivity : AppCompatActivity(), WifiCallbackResult {
                     }
                 })
         )
+    }
+
+    override fun wifiConnectionStatusChangedResult() {
+        println("************Connection Status Changed Result************")
+        checkDeviceConnected(wifiScanResultList)
+        setRecycleViewAdapter(wifiScanResultList)
+    }
+
+    private fun checkDeviceConnected(wifiScanResultListCheck: List<ScanResult>): Boolean? {
+        for (index in wifiScanResultListCheck.indices) {
+            return if (wifiManagerWrapper?.isConnectedTo(wifiScanResultListCheck[index].SSID)!!) {
+                wifiScanResultList[index].capabilities = "Connected"
+                println("Connected")
+                true
+            } else {
+                wifiScanResultList[index].capabilities = "Connection not established"
+                println("Connected not established")
+                false
+            }
+        }
+        return null
     }
 }

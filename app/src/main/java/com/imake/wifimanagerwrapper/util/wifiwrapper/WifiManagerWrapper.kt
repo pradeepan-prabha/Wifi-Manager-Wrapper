@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.NetworkInfo
 import android.net.wifi.WifiConfiguration
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.util.Log
@@ -18,23 +16,25 @@ class WifiManagerWrapper() {
     private val TAG: String? = "com.wifimanagerwrapper"
     private lateinit var context: Context
     private lateinit var wifiManager: WifiManager
-    private lateinit var listenerCallback: WifiCallbackResult
-    private lateinit var wifiScanReceiver: BroadcastReceiver
-    private lateinit var wifiConnectivityReceiver: BroadcastReceiver
+    private lateinit var scanListenerCallback: WifiScanCallbackResult
+    private lateinit var connectivityListenerCallback: WifiConnectivityCallbackResult
+    private var wifiScanReceiver: BroadcastReceiver? = null
+    private var wifiConnectivityReceiver: BroadcastReceiver? = null
     val WEP: String = "WEP"
     val WPA_WPA2_PSK: String = "WPA"
     val None: String = "None"
 
-    fun wifiManagerInti(contextInti: Context, listener: WifiCallbackResult): WifiManagerWrapper {
-        this.listenerCallback = listener
-        this.context = contextInti.applicationContext
+    fun wifiManagerInti(context: Context): WifiManagerWrapper {
+        this.context = context
         wifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         Log.d(TAG, "ConnectionInfo :" + wifiManager.connectionInfo)
         return this
     }
 
-    fun autoWifiScanner() {
+
+    fun autoWifiScanner(wifiScanCallbackResult: WifiScanCallbackResult) {
+        this.scanListenerCallback = wifiScanCallbackResult
         if (wifiManager.isWifiEnabled) {
             autoStartStopWifiScanner()
             Log.d(TAG, "WiFi is Enabled")
@@ -67,7 +67,8 @@ class WifiManagerWrapper() {
         }
     }
 
-    fun startManualWifiScanner() {
+    fun startManualWifiScanner(wifiScanCallbackResult: WifiScanCallbackResult) {
+        this.scanListenerCallback = wifiScanCallbackResult
         // Create Instance for broadcast receiver Wi-Fi Scanner
         wifiScannerBroadcastReceiverInstance()
         // Register broadcast receiver for Wi-Fi Scanner
@@ -82,101 +83,110 @@ class WifiManagerWrapper() {
     }
 
     fun stopManualWifiScanner() {
-        Log.d(TAG, "Stop Manual Wifi Scanner")
-        unregisterWifiScannerBroadcastReceiver()
-
+        if (wifiScanReceiver != null) {
+            Log.d(TAG, "Stop Manual Wifi Scanner")
+            unregisterWifiScannerBroadcastReceiver()
+        }
     }
 
     private fun unregisterWifiScannerBroadcastReceiver() {
-        Log.d(TAG, "Unregister Wifi Scanner BroadcastReceiver")
-        context.unregisterReceiver(wifiScanReceiver)
+        if (wifiScanReceiver != null) {
+            Log.d(TAG, "Unregister Wifi Scanner BroadcastReceiver")
+            context.unregisterReceiver(wifiScanReceiver)
+        }
     }
 
     private fun registerWifiScannerBroadcastReceiver() {
-        Log.d(TAG, "Register Wifi Scanner BroadcastReceiver")
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-        context.registerReceiver(wifiScanReceiver, intentFilter)
+        if (wifiScanReceiver != null) {
+            Log.d(TAG, "Register Wifi Scanner BroadcastReceiver")
+            val intentFilter = IntentFilter()
+            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
+            context.registerReceiver(wifiScanReceiver, intentFilter)
+        }
     }
 
     private fun wifiScannerBroadcastReceiverInstance() {
-        wifiScanReceiver = object : BroadcastReceiver() {
+        if (wifiScanReceiver == null) {
+            wifiScanReceiver = object : BroadcastReceiver() {
 
-            @RequiresApi(Build.VERSION_CODES.M)
-            override fun onReceive(context: Context, intent: Intent) {
-                val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
-                if (success) {
-                    Log.d(TAG, "Scan success handling with result list.")
-                    scanSuccess()
-                } else {
-                    Log.d(TAG, "Scan failure handling")
-                    scanFailure()
+                @RequiresApi(Build.VERSION_CODES.M)
+                override fun onReceive(context: Context, intent: Intent) {
+                    val success = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
+                    if (success) {
+                        Log.d(TAG, "Scan success handling with result list.")
+                        scanSuccess()
+                    } else {
+                        Log.d(TAG, "Scan failure handling")
+                        scanFailure()
+                    }
                 }
             }
         }
     }
 
     private fun unregisterWifiConnectivityBroadcastReceiver() {
-        context.unregisterReceiver(wifiConnectivityReceiver)
+        if (wifiConnectivityReceiver != null) {
+            context.unregisterReceiver(wifiConnectivityReceiver)
+        }
     }
 
     private fun registerWifiConnectivityBroadcastReceiver() {
-
-        val intentFilter = IntentFilter().apply {
-            addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+        if (wifiConnectivityReceiver != null) {
+            val intentFilter = IntentFilter().apply {
+                addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+            }
+            context.registerReceiver(wifiConnectivityReceiver, intentFilter)
         }
-        context.registerReceiver(wifiConnectivityReceiver, intentFilter)
-
     }
 
     private fun wifiConnectionBroadcastReceiverInstance() {
+        if (wifiConnectivityReceiver == null) {
+            wifiConnectivityReceiver = object : BroadcastReceiver() {
 
-        wifiConnectivityReceiver = object : BroadcastReceiver() {
+                @RequiresApi(Build.VERSION_CODES.M)
+                override fun onReceive(context: Context, intent: Intent) {
+                    Log.d(TAG, "Wi-Fi Connection Broadcast onReceived")
 
-            @RequiresApi(Build.VERSION_CODES.M)
-            override fun onReceive(context: Context, intent: Intent) {
-                val success = intent.getBooleanExtra(WifiManager.EXTRA_NETWORK_INFO, false)
-                if (success) {
                     unregisterWifiConnectivityBroadcastReceiver()
-                    val networkInfo =
-                        intent.getParcelableExtra<NetworkInfo>(WifiManager.EXTRA_NETWORK_INFO)
-                    if (networkInfo.state == NetworkInfo.State.CONNECTED) {
-                        val bssid = intent.getStringExtra(WifiManager.EXTRA_BSSID)
-                        Log.d(TAG, "Connected to BSSID:" + bssid)
-                        val ssid =
-                            intent.getParcelableExtra<WifiInfo>(WifiManager.EXTRA_WIFI_INFO).ssid
-                        val log = "Connected to SSID:" + ssid
-                        Log.d(TAG, "Connected to SSID:" + ssid)
-                    }
+                    connectionStatusChanged()
                 }
             }
+            registerWifiConnectivityBroadcastReceiver()
+
+        } else {
+            registerWifiConnectivityBroadcastReceiver()
+            Log.d(TAG, "Wi-Fi Connection Broadcast Receiver Instance is already created")
         }
-        registerWifiConnectivityBroadcastReceiver()
+    }
+
+    private fun connectionStatusChanged() {
+        //Connection Success, Wi-Fi connection established
+        //or Either
+        //Connection Failure, Wi-Fi connection not yet established
+        connectivityListenerCallback.wifiConnectionStatusChangedResult()
     }
 
     private fun scanSuccess() {
         val results = wifiManager.scanResults
-        listenerCallback.wifiSuccessResult(results)
+        scanListenerCallback.wifiSuccessResult(results)
     }
 
     private fun scanFailure() {
         // handle failure: new scan did NOT succeed
         // consider using old scan results: these are the OLD results!
         val results = wifiManager.scanResults
-        listenerCallback.wifiFailureResult(results)
+        scanListenerCallback.wifiFailureResult(results)
     }
 
-    fun connectWifi(
-        networkSSID: String,
-        networkPassword: String,
-        networkSecurity: String
+    fun connectWifi(networkSSID: String, networkPassword: String, networkSecurity: String, wifiConnectivityCallbackResult: WifiConnectivityCallbackResult
     ) {
+        this.connectivityListenerCallback = wifiConnectivityCallbackResult
         if (isConnectedTo(networkSSID)) {
             //see if we are already connected to the given SSID
             Log.d(TAG, "Given Network SSID is already connected : $networkSSID")
             return
         }
-//        wifiConnectionBroadcastReceiverInstance()
+        wifiConnectionBroadcastReceiverInstance()
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         var wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
@@ -192,23 +202,32 @@ class WifiManagerWrapper() {
             wm.reconnect()
             Log.d(TAG, "Initiated connection to Network SSID $networkSSID")
         } else {
+            connectionStatusChanged()
             Log.d(TAG, "Connection failure to Network SSID $networkSSID")
         }
     }
 
-    fun forgotWifi(networkSSID: String) {
+    fun forgetWifi(
+        networkSSID: String,
+        wifiConnectivityCallbackResult: WifiConnectivityCallbackResult
+    ) {
+        this.connectivityListenerCallback = wifiConnectivityCallbackResult
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiConfig: WifiConfiguration? = getWiFiConfig(networkSSID)
         if (wifiConfig != null) {
             wm.removeNetwork(wifiConfig.networkId)
+            Log.d(TAG, "Network SSID is removed successfully")
+            connectionStatusChanged()
         }
     }
 
-    private fun isConnectedTo(networkSSID: String): Boolean {
+    fun isConnectedTo(networkSSID: String): Boolean {
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         if (wm.connectionInfo.ssid == networkSSID) {
+            return true
+        } else if (wm.connectionInfo.ssid == String.format("\"%s\"", networkSSID)) {
             return true
         }
         return false
@@ -217,15 +236,15 @@ class WifiManagerWrapper() {
     private fun getWiFiConfig(networkSSID: String): WifiConfiguration? {
         val wm: WifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            val wifiList = wm.configuredNetworks
+        val wifiList = wm.configuredNetworks
 
-            for (item in wifiList) {
-                if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
-                    Log.d(TAG, "Network SSID is Available in WiFiManger")
-                    return item
-                }
+        for (item in wifiList) {
+            if (item.SSID != null && item.SSID == String.format("\"%s\"", networkSSID)) {
+                Log.d(TAG, "Network SSID is Available in WiFiManger")
+                return item
             }
-            Log.d(TAG, "Network SSID is Not Available in WiFiManger")
+        }
+        Log.d(TAG, "Network SSID is Not Available in WiFiManger")
         return null
     }
 

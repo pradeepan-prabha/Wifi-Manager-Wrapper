@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
 
     <LinearLayout
@@ -17,7 +17,6 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:src="@drawable/ic_wifi_black_24dp" />
 
         <LinearLayout
@@ -25,13 +24,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="16dp"
-            tools:ignore="MissingConstraints">
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical">
 
             <TextView
                 android:id="@+id/networkNameTv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Dell_Wifi_laptop"
                 android:textSize="18sp"
                 tools:ignore="MissingConstraints" />
 
@@ -39,9 +38,7 @@
                 android:id="@+id/securityNetworkTv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4sp"
-                android:text="Security Network"
-                tools:ignore="MissingConstraints" />
+                tools:ignore="MissingConstraints"/>
         </LinearLayout>
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

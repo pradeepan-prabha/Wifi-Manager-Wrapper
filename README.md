@@ -26,7 +26,7 @@ Then, add the library to your module `build.gradle`
 ```gradle
 dependencies {
 
-        implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.3'
+        implementation 'com.github.pradeepan-prabha:Wifi-Manager-Wrapper:v0.0.4'
 }
 ```
 
@@ -71,16 +71,18 @@ dependencies {
 ```
 
 ## Methods:
- * `wifiManagerInti(Context,WifiCallbackResult)` - Create Wifi manager wrapper instance is mandatory.
- * `autoWifiScanner()`  - Easy Auto wifi scan mode.
- * `isWifiEnabled() : return Boolean` - Check Wi-Fi is Enable or Not.
- * `startManualWifiScanner()` - Manual to Start scan Wi-Fi.
+ * `wifiManagerInti(Context)` - Create Wifi manager wrapper instance is mandatory.
+ * `autoWifiScanner(WifiScanCallbackResult)`  - Easy Auto wifi scan mode, Pass WifiScanCallbackResult instance.
+ * `isWifiEnabled() : return Boolean` - Check Wi-Fi is Enable or Not, Pass WifiScanCallbackResult instance.
+ * `startManualWifiScanner(WifiScanCallbackResult)` - Manual to Start scan Wi-Fi.
  * `stopManualWifiScanner() ` - Manual to Stop scan Wi-Fi.
- * `getWifiSavedDetails() ` - To get Saved network list.
+ * `getWifiSavedDetails() : return MutableList<WifiConfiguration> ` - To get Saved network list.
  * `createNetworkProfile(networkSSID: String, networkPassword: String, securityType: String) : return Boolean ` - To Create network.
  * `isWifiSavedNetwork(networkSSID: String) : return Boolean` - To Check given SSDI Network Present or Not..
  * `getWiFiConfig(networkSSID: String): return WifiConfiguration` - To get given SSDI network details WifiConfiguration.
  * `isConnectedTo(networkSSID: String): return Boolean` - Check SSID network is connected or Not.
+ * `forgetWifi(networkSSID: String, WifiConnectivityCallbackResult): return Boolean` - Check SSID network is connected or Not,Pass            WifiConnectivityCallbackResult instance.
+ * `connectWifi(networkSSID: String, networkPassword: String, networkSecurity: String, WifiConnectivityCallbackResult)` - Connect Wi-Fi use SSID network and network password and security type.
 
 ## Network Security Type Support:
 
