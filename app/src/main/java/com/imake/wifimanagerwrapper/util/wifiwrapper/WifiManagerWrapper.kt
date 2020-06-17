@@ -183,6 +183,7 @@ class WifiManagerWrapper() {
         this.connectivityListenerCallback = wifiConnectivityCallbackResult
         if (isConnectedTo(networkSSID)) {
             //see if we are already connected to the given SSID
+            connectionStatusChanged()
             Log.d(TAG, "Given Network SSID is already connected : $networkSSID")
             return
         }
