@@ -42,12 +42,12 @@ dependencies {
 ```
 
 ## Implementation for Wi-Fi Scan and Connectivity
-``var wifiManagerWrapper = WifiManagerWrapper() // Library initialization``
+``var wifiManagerWrapper = wifiManagerWrapper.wifiManagerInti(this) // Library initialization``
 
 ### Wi-Fi Scan
 
 ```
-            wifiManagerWrapper!!.wifiManagerInti(this).autoWifiScanner(object: WifiScanCallbackResult{
+            wifiManagerWrapper?.autoWifiScanner(object: WifiScanCallbackResult{
                 override fun wifiFailureResult(results: MutableList<ScanResult>) {
                     TODO("Not yet implemented")
                 }
